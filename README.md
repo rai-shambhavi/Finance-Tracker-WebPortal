@@ -13,34 +13,33 @@ This application is built to support their operations by providing a simple, eff
 Finance-Tracker-WebPortal/
 │
 ├── backend/
-│   ├── server.js              ← Entry point (starts the server)
-│   ├── storage.js             ← All Excel read/write logic
-│   ├── package.json           ← Dependencies
-│   ├── upay-data.xlsx         ← YOUR DATA (auto-created on first run)
+│   ├── server.js              
+│   ├── storage.js             
+│   ├── package.json           
+│   ├── upay-data.xlsx         
 │   │
 │   ├── middleware/
-│   │   └── auth.js            ← Authentication middleware
+│   │   └── auth.js            
 │   │
 │   └── routes/
-│       ├── auth.js            ← Authentication routes
-│       ├── transactions.js    ← Add, edit, delete, list transactions
-│       ├── logs.js            ← Activity log (admin only)
-│       └── users.js           ← Manage user accounts (admin only)
+│       ├── auth.js            
+│       ├── transactions.js    
+│       ├── logs.js           
+│       └── users.js           
 │
 └── frontend/
-    └── index.html             ← Application UI
+    └── index.html             
 ```
 ---
 
-## 🚀 How to Run
+## 🚀 Getting Started
 
-### Step 1 – Install Node.js (once ever)
-Download from https://nodejs.org → choose the **LTS** version → install normally.
+### Prerequisites
+- Node.js (v14 or higher)
+- npm
 
-Verify it worked:
-```
-node --version
-```
+### Step 1 – Clone the repository:
+git clone <your-repo-link>
 
 ### Step 2 – Open a terminal in the backend folder
 ```bash
@@ -75,7 +74,8 @@ Go to **http://localhost:3000** in your browser.
 | Admin | admin    | admin123  |
 | Staff | staff1   | staff123  |
 
-> ⚠️ To change passwords: open `upay-data.xlsx` → go to the **Users** sheet → edit the password column → save the file.
+> ⚠️ To update credentials:
+Open `upay-data.xlsx` → Go to the **Users** sheet → Edit the password column → Save the file.
 
 ---
 
