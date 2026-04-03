@@ -93,8 +93,8 @@ It has **3 sheets**:
 ⚠️ Important Notes
 - Do not rename sheets or columns
 - You can safely:
--     View data
--     Perform bulk edits
-     - Generate reports
+    - View data
+    - Perform bulk edits
+    - Generate reports
 
 ---
