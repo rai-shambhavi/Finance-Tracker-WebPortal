@@ -480,7 +480,7 @@ function LoginPage({onLogin}) {
         </div>
         <div className="form-group" style={{marginBottom:14}}>
           <label>Username</label>
-          <input type="text" placeholder={role==='admin'?'admin':'staff1'} value={u} onChange={e=>{setU(e.target.value);setErr('')}}/>
+          <input type="text" placeholder="Enter username" value={u} onChange={e => { setU(e.target.value); setErr('') }} />
         </div>
         <div className="form-group" style={{marginBottom:20}}>
           <label>Password</label>
@@ -800,3 +800,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </script>
 </body>
 </html>
+
+  
