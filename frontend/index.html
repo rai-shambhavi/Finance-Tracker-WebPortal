@@ -492,3 +492,311 @@ function LoginPage({onLogin}) {
     </div>
   </div>;
 }
+
+  function OverallDashboard({txs}) {
+  const totalIncome = txs.filter(t=>t.flow==='Credit').reduce((s,t)=>s+Number(t.amount),0);
+  const totalExpense = txs.filter(t=>t.flow==='Debit').reduce((s,t)=>s+Number(t.amount),0);
+  const net = totalIncome - totalExpense;
+  const projects = [...new Set(txs.map(t=>t.project))];
+  const monthlyData = MONTHS.map((_,i)=>{
+    const inc = txs.filter(t=>t.flow==='Credit'&&new Date(t.date).getMonth()===i).reduce((s,t)=>s+Number(t.amount),0);
+    const exp = txs.filter(t=>t.flow==='Debit'&&new Date(t.date).getMonth()===i).reduce((s,t)=>s+Number(t.amount),0);
+    return {inc,exp};
+  });
+  const barData = {
+    labels: MONTHS,
+    datasets: [
+      {label:'Income',data:monthlyData.map(m=>m.inc),backgroundColor:'rgba(46,158,142,.75)',borderRadius:5},
+      {label:'Expenses',data:monthlyData.map(m=>m.exp),backgroundColor:'rgba(224,82,82,.65)',borderRadius:5},
+    ]
+  };
+  const pieData = {
+    labels: projects,
+    datasets:[{data: projects.map(p=>txs.filter(t=>t.project===p&&t.flow==='Credit').reduce((s,t)=>s+Number(t.amount),0)),
+      backgroundColor:['#2E9E8E','#0F2744','#F5A623','#3CB371','#6A7FDB','#E05252'],borderWidth:2,borderColor:'#fff'}]
+  };
+  const opts = {responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:12}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f0f0'}}}};
+  const pieOpts = {responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:10}}}};
+  return <div>
+    <div className="stat-grid">
+      <div className="stat-card blue"><div className="stat-label">Total Income</div><div className="stat-value teal">{fmt(totalIncome)}</div><div className="stat-sub">All credits</div></div>
+      <div className="stat-card teal"><div className="stat-label">Total Expenses</div><div className="stat-value red">{fmt(totalExpense)}</div><div className="stat-sub">All debits</div></div>
+      <div className="stat-card amber"><div className="stat-label">Net Balance</div><div className="stat-value" style={{color:net>=0?'var(--green)':'var(--red)'}}>{fmt(net)}</div><div className="stat-sub">Income – Expenses</div></div>
+      <div className="stat-card green"><div className="stat-label">Total Projects</div><div className="stat-value">{projects.length}</div><div className="stat-sub">Active</div></div>
+    </div>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20,flexWrap:'wrap'}}>
+      <div className="card" style={{gridColumn:'1'}}><div className="section-title" style={{marginBottom:8}}>Monthly Trends</div><div className="chart-wrap"><ChartComp type="bar" data={barData} options={opts} id="ovBar"/></div></div>
+      <div className="card" style={{gridColumn:'2'}}><div className="section-title" style={{marginBottom:8}}>Funds by Project</div><div className="chart-wrap"><ChartComp type="pie" data={pieData} options={pieOpts} id="ovPie"/></div></div>
+    </div>
+  </div>;
+}
+
+function ProjectDashboard({txs}) {
+  const projects = [...new Set(txs.map(t=>t.project))];
+  const rows = projects.map(p=>{
+    const credit = txs.filter(t=>t.project===p&&t.flow==='Credit').reduce((s,t)=>s+Number(t.amount),0);
+    const debit  = txs.filter(t=>t.project===p&&t.flow==='Debit').reduce((s,t)=>s+Number(t.amount),0);
+    return {p,credit,debit,rem:credit-debit};
+  });
+  const barData = {labels:rows.map(r=>r.p),datasets:[{label:'Total Credit',data:rows.map(r=>r.credit),backgroundColor:'rgba(46,158,142,.8)',borderRadius:5},{label:'Total Debit',data:rows.map(r=>r.debit),backgroundColor:'rgba(224,82,82,.7)',borderRadius:5}]};
+  const opts = {responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f0f0'}}}};
+  return <div>
+    <div className="stat-grid">{rows.map(r=><div key={r.p} className="stat-card blue"><div className="stat-label">{r.p}</div><div className="stat-value teal">{fmt(r.credit)}</div><div className="stat-sub">Spent: {fmt(r.debit)} | Rem: <b style={{color:r.rem>=0?'var(--green)':'var(--red)'}}>{fmt(r.rem)}</b></div></div>)}</div>
+    <div className="card"><div className="section-title" style={{marginBottom:8}}>Project-wise Fund Usage</div><div className="chart-wrap" style={{height:300}}><ChartComp type="bar" data={barData} options={opts} id="projBar"/></div></div>
+    <div className="card" style={{marginTop:20}}><div className="section-title" style={{marginBottom:12}}>Project Funds Details</div><div className="table-wrap"><table><thead><tr><th>Project</th><th>Total Funds</th><th>Spent</th><th>Remaining</th></tr></thead><tbody>{rows.map(r=><tr key={r.p}><td className="fw">{r.p}</td><td>{fmt(r.credit)}</td><td style={{color:'var(--red)'}}>{fmt(r.debit)}</td><td style={{color:r.rem>=0?'var(--green)':'var(--red)',fontWeight:700}}>{fmt(r.rem)}</td></tr>)}</tbody></table></div></div>
+  </div>;
+}
+
+function LocationDashboard({txs}) {
+  const locs = [...new Set(txs.map(t=>t.location))];
+  const rows = locs.map(l=>{
+    const income  = txs.filter(t=>t.location===l&&t.flow==='Credit').reduce((s,t)=>s+Number(t.amount),0);
+    const expense = txs.filter(t=>t.location===l&&t.flow==='Debit').reduce((s,t)=>s+Number(t.amount),0);
+    return {l,income,expense,net:income-expense};
+  });
+  const barData = {labels:rows.map(r=>r.l),datasets:[{label:'Income',data:rows.map(r=>r.income),backgroundColor:'rgba(46,158,142,.8)',borderRadius:5},{label:'Expense',data:rows.map(r=>r.expense),backgroundColor:'rgba(245,166,35,.75)',borderRadius:5}]};
+  const opts = {responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f0f0'}}}};
+  return <div>
+    <div className="stat-grid">{rows.map(r=><div key={r.l} className="stat-card teal"><div className="stat-label">{r.l}</div><div className="stat-value teal">{fmt(r.income)}</div><div className="stat-sub">Expense: {fmt(r.expense)} | Net: <b style={{color:r.net>=0?'var(--green)':'var(--red)'}}>{fmt(r.net)}</b></div></div>)}</div>
+    <div className="card"><div className="section-title" style={{marginBottom:8}}>Location-wise Financial Comparison</div><div className="chart-wrap" style={{height:300}}><ChartComp type="bar" data={barData} options={opts} id="locBar"/></div></div>
+    <div className="card" style={{marginTop:20}}><div className="section-title" style={{marginBottom:12}}>Location Summary</div><div className="table-wrap"><table><thead><tr><th>Location</th><th>Total Income</th><th>Total Expense</th><th>Net Balance</th></tr></thead><tbody>{rows.map(r=><tr key={r.l}><td className="fw">{r.l}</td><td style={{color:'var(--teal)',fontWeight:600}}>{fmt(r.income)}</td><td style={{color:'var(--amber)',fontWeight:600}}>{fmt(r.expense)}</td><td style={{color:r.net>=0?'var(--green)':'var(--red)',fontWeight:700}}>{fmt(r.net)}</td></tr>)}</tbody></table></div></div>
+  </div>;
+}
+
+function TransactionsPage({txs, setTxs, logs, setLogs, currentUser, isAdmin, addToast, projects, setProjects, locations, setLocations}) {
+  const [showModal, setShowModal] = useState(false);
+  const [editTx, setEditTx] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filterProject, setFilterProject] = useState('');
+  const [filterLocation, setFilterLocation] = useState('');
+  const [filterFlow, setFilterFlow] = useState('');
+  const [filterType, setFilterType] = useState('');
+
+  const filtered = txs.filter(t=>{
+    if(search && !JSON.stringify(t).toLowerCase().includes(search.toLowerCase())) return false;
+    if(filterProject && t.project!==filterProject) return false;
+    if(filterLocation && t.location!==filterLocation) return false;
+    if(filterFlow && t.flow!==filterFlow) return false;
+    if(filterType && t.type!==filterType) return false;
+    return true;
+  });
+
+  const refreshLogs = () => {
+    if (setLogs) api.getLogs().then(data => setLogs(data)).catch(() => {});
+  };
+
+  const handleSave = async (data) => {
+    try {
+      if (editTx) {
+        const updated = await api.updateTransaction(editTx.id, data);
+        setTxs(p => p.map(t => t.id === editTx.id ? updated : t));
+        addToast('Transaction updated!', 'success');
+      } else {
+        const created = await api.addTransaction(data);
+        setTxs(p => [created, ...p]);
+        addToast('Transaction added!', 'success');
+      }
+      setShowModal(false); setEditTx(null);
+      refreshLogs();
+    } catch(e) {
+      addToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  const handleDel = async (id) => {
+    const tx = txs.find(t => t.id === id);
+    if (!window.confirm(`Delete this transaction for ${tx.project}?`)) return;
+    try {
+      await api.deleteTransaction(id);
+      setTxs(p => p.filter(t => t.id !== id));
+      addToast('Transaction deleted.', '');
+      refreshLogs();
+    } catch(e) {
+      addToast('Error: ' + e.message, 'error');
+    }
+  };
+
+  return <div>
+    <div className="section-header">
+      <span className="section-title">All Transactions</span>
+      <div style={{display:'flex',gap:10,alignItems:'center'}}>
+        <button className="btn btn-outline btn-sm" onClick={()=>exportCSV(filtered,'transactions')}>{I.export} Export CSV</button>
+        <button className="btn btn-primary btn-sm" onClick={()=>{setEditTx(null);setShowModal(true)}}>{I.add} Add Transaction</button>
+      </div>
+    </div>
+    <div className="filter-row">
+      <div className="search-bar">{I.search}<input placeholder="Search…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
+      <select className="filter-select" value={filterProject} onChange={e=>setFilterProject(e.target.value)}>
+        <option value="">All Projects</option>{projects.map(p=><option key={p} value={p}>{p}</option>)}
+      </select>
+      <select className="filter-select" value={filterLocation} onChange={e=>setFilterLocation(e.target.value)}>
+        <option value="">All Locations</option>{locations.map(l=><option key={l} value={l}>{l}</option>)}
+      </select>
+      <select className="filter-select" value={filterFlow} onChange={e=>setFilterFlow(e.target.value)}>
+        <option value="">Credit/Debit</option><option value="Credit">Credit</option><option value="Debit">Debit</option>
+      </select>
+      <select className="filter-select" value={filterType} onChange={e=>setFilterType(e.target.value)}>
+        <option value="">All Types</option><option value="Income">Income</option><option value="Expense">Expense</option>
+      </select>
+    </div>
+    <div className="card" style={{padding:0}}>
+      <div className="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Project</th><th>Location</th><th>Amount</th><th>Flow</th><th>Type</th><th>By</th>{isAdmin&&<th>Actions</th>}</tr></thead>
+          <tbody>{filtered.length===0
+            ?<tr><td colSpan={8} style={{textAlign:'center',padding:'32px',color:'var(--gray-400)'}}>No transactions found.</td></tr>
+            :filtered.map(t=><tr key={t.id}>
+              <td>{t.date}</td><td className="fw">{t.project}</td><td>{t.location}</td>
+              <td className="fw">{fmt(t.amount)}</td>
+              <td><span className={`badge badge-${t.flow.toLowerCase()}`}>{t.flow}</span></td>
+              <td><span className={`badge badge-${t.type.toLowerCase()}`}>{t.type}</span></td>
+              <td>{t.user}</td>
+              {isAdmin&&<td><div style={{display:'flex',gap:6}}>
+                <button className="btn-icon" title="Edit" onClick={()=>{setEditTx(t);setShowModal(true)}}>{I.edit}</button>
+                <button className="btn-icon del" title="Delete" onClick={()=>handleDel(t.id)}>{I.del}</button>
+              </div></td>}
+            </tr>)
+          }</tbody>
+        </table>
+      </div>
+    </div>
+    {showModal && <Modal title={editTx?'Edit Transaction':'Add Transaction'} onClose={()=>{setShowModal(false);setEditTx(null);}}>
+      <TxForm initial={editTx} onSave={handleSave} onCancel={()=>{setShowModal(false);setEditTx(null);}} isAdmin={isAdmin} projects={projects} setProjects={setProjects} locations={locations} setLocations={setLocations}/>
+    </Modal>}
+  </div>;
+}
+
+function LogsPage({logs}) {
+  const colors = {add:'var(--teal)',edit:'var(--amber)',delete:'var(--red)'};
+  return <div>
+    <div className="section-header"><span className="section-title">Activity Logs</span>
+      <button className="btn btn-outline btn-sm" onClick={()=>exportCSV(logs,'activity-logs')}>{I.export} Export CSV</button>
+    </div>
+    <div className="card" style={{padding:0}}>
+      <div className="table-wrap">
+        <table>
+          <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Type</th></tr></thead>
+          <tbody>{logs.map(l=><tr key={l.id} className="log-row">
+            <td style={{color:'var(--gray-400)'}}>{l.ts}</td>
+            <td className="fw">{l.user}</td>
+            <td>{l.action}</td>
+            <td><span className="badge" style={{background:colors[l.type]+'22',color:colors[l.type],textTransform:'capitalize'}}>{l.type}</span></td>
+          </tr>)}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>;
+}
+
+function App() {
+  // ── FIX: restore session from localStorage on page load ──
+  const [session, setSession] = useState(() => {
+    try {
+      const s = localStorage.getItem('upay_session');
+      return s ? JSON.parse(s) : null;
+    } catch { return null; }
+  });
+
+  const [txs, setTxs]           = useState([]);
+  const [logs, setLogs]         = useState([]);
+  const [page, setPage]         = useState('overall');
+  const [sideOpen, setSideOpen] = useState(false);
+  const [toasts, setToasts]     = useState([]);
+  const [projects, setProjects] = useState(DEFAULT_PROJECTS);
+  const [locations, setLocations] = useState(DEFAULT_LOCATIONS);
+
+  const addToast = (msg, kind='') => {
+    const id = uid();
+    setToasts(p => [...p, {id, msg, kind}]);
+    setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3000);
+  };
+
+  useEffect(() => {
+    if (!session) return;
+    api.getTransactions()
+      .then(data => setTxs(data))
+      .catch(e => addToast('Could not load transactions: ' + e.message, 'error'));
+    if (session.role === 'admin') {
+      api.getLogs().then(data => setLogs(data)).catch(() => {});
+    }
+  }, [session]);
+
+  const handleLogout = async () => {
+    try { await api.logout(); } catch(e) {}
+    // ── FIX: clear persisted session on logout ──
+    localStorage.removeItem('upay_session');
+    setSession(null); setTxs([]); setLogs([]);
+  };
+
+  if(!session) return <LoginPage onLogin={(u,info)=>{
+    const s = {username:u,...info};
+    // ── FIX: persist session so refresh doesn't log out ──
+    localStorage.setItem('upay_session', JSON.stringify(s));
+    setSession(s);
+    setPage('overall');
+  }}/>;
+
+  const isAdmin = session.role==='admin';
+
+  const NAV = [
+    {section:'Dashboards'},
+    {id:'overall',label:'Overall Summary',icon:I.chart},
+    {id:'project',label:'Project-wise',icon:I.project},
+    {id:'location',label:'Location-wise',icon:I.location},
+    {section:'Data'},
+    {id:'transactions',label:'Transactions',icon:I.tx},
+    ...(isAdmin?[{id:'logs',label:'Activity Logs',icon:I.log}]:[]),
+  ];
+
+  const pageTitle = {overall:'Overall Summary Dashboard',project:'Project-wise Dashboard',location:'Location-wise Dashboard',transactions:'Transactions',logs:'Activity Logs'}[page];
+
+  return <div className="app-shell">
+    {sideOpen && <div className="overlay-bg visible" onClick={()=>setSideOpen(false)}/>}
+    <aside className={`sidebar${sideOpen?' open':''}`}>
+      <div className="sidebar-logo">
+        <div className="brand">UPAY</div>
+        <div className="tagline">NGO Finance Tracker</div>
+      </div>
+      <nav className="sidebar-nav">
+        {NAV.map((n,i)=>n.section
+          ? <div key={i} className="nav-section-label">{n.section}</div>
+          : <div key={n.id} className={`nav-item${page===n.id?' active':''}`} onClick={()=>{setPage(n.id);setSideOpen(false);}}>
+              {n.icon}{n.label}
+            </div>
+        )}
+      </nav>
+      <div className="sidebar-footer">
+        <button className="logout-btn" onClick={handleLogout}>{I.logout} Sign Out</button>
+      </div>
+    </aside>
+
+    <div className="main">
+      <div className="topbar">
+        <div style={{display:'flex',alignItems:'center',gap:12}}>
+          <button className="hamburger" onClick={()=>setSideOpen(p=>!p)}>{I.menu}</button>
+          <span className="topbar-title">{pageTitle}</span>
+        </div>
+        <div className="topbar-right">
+          <div className="user-chip">
+            <div className="user-avatar">{session.name[0]}</div>
+            <span className="user-name">{session.name}</span>
+          </div>
+          <span className={`role-badge ${session.role}`}>{session.role}</span>
+        </div>
+      </div>
+      <div className="page-content">
+        {page==='overall'      && <OverallDashboard txs={txs}/>}
+        {page==='project'      && <ProjectDashboard txs={txs}/>}
+        {page==='location'     && <LocationDashboard txs={txs}/>}
+        {page==='transactions' && <TransactionsPage txs={txs} setTxs={setTxs} logs={logs} setLogs={setLogs} currentUser={session.username} isAdmin={isAdmin} addToast={addToast} projects={projects} setProjects={setProjects} locations={locations} setLocations={setLocations}/>}
+        {page==='logs'         && isAdmin && <LogsPage logs={logs}/>}
+      </div>
+    </div>
+    <Toasts toasts={toasts}/>
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
