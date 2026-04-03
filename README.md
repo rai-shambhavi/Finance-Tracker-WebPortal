@@ -1,33 +1,34 @@
 # Finance Tracker Web Portal
 
-This project is developed as part of our Community Engagement Project(CEP) at college.
-The goal of this project is to build a practical solution that addresses real-world needs while applying our technical skills.
+A full-stack web application developed as part of our Community Engagement Project (CEP).
+This project aims to deliver a practical, real-world solution while strengthening our software development skills.
 
 ## 🤝 About UPAY NGO
 
-UPAY NGO works towards community development and social impact.
-This project is designed to assist their operations by providing a simple and effective digital solution.
+UPAY NGO is focused on community development and social impact initiatives.
+This application is built to support their operations by providing a simple, efficient, and digital finance tracking system.
 
+## 📁 Folder Structure
 ```
 Finance-Tracker-WebPortal/
 │
 ├── backend/
-│   ├── server.js              ← START HERE - runs the server
+│   ├── server.js              ← Entry point (starts the server)
 │   ├── storage.js             ← All Excel read/write logic
-│   ├── package.json           ← Library list
+│   ├── package.json           ← Dependencies
 │   ├── upay-data.xlsx         ← YOUR DATA (auto-created on first run)
 │   │
 │   ├── middleware/
-│   │   └── auth.js            ← Checks login tokens
+│   │   └── auth.js            ← Authentication middleware
 │   │
 │   └── routes/
-│       ├── auth.js            ← Login / logout
+│       ├── auth.js            ← Authentication routes
 │       ├── transactions.js    ← Add, edit, delete, list transactions
 │       ├── logs.js            ← Activity log (admin only)
 │       └── users.js           ← Manage user accounts (admin only)
 │
 └── frontend/
-    └── index.html             ← The app UI - open in browser
+    └── index.html             ← Application UI
 ```
 ---
 
@@ -65,5 +66,35 @@ You should see:
 
 ### Step 5 – Open the app
 Go to **http://localhost:3000** in your browser.
+
+---
+## 🔑 Default Login Credentials
+
+| Role  | Username | Password  |
+|-------|----------|-----------|
+| Admin | admin    | admin123  |
+| Staff | staff1   | staff123  |
+
+> ⚠️ To change passwords: open `upay-data.xlsx` → go to the **Users** sheet → edit the password column → save the file.
+
+---
+
+## 📊 Data Storage
+
+`upay-data.xlsx` is created automatically the first time you start the server with pure *sample data*.
+It has **3 sheets**:
+
+| Sheet        | What it stores                              |
+|--------------|---------------------------------------------|
+| Transactions | All financial records                       |
+| Users        | Login credentials for admin and staff       |
+| Logs         | History of every add / edit / delete action |
+
+⚠️ Important Notes
+- Do not rename sheets or columns
+- You can safely:
+-     View data
+-     Perform bulk edits
+     - Generate reports
 
 ---
