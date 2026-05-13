@@ -190,3 +190,14 @@ module.exports = {
   getAllUsers, findUser, addUser, deleteUser,
   getAllLogs, addLog,
 };
+
+initStorage();
+
+function initStorage() {
+  if (!fs.existsSync(FILE)) {
+    console.log("📦 Creating upay-data.xlsx...");
+    createFreshWorkbook();
+  } else {
+    console.log("📁 Excel file already exists");
+  }
+}
